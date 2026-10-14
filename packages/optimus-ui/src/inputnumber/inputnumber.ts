@@ -1462,6 +1462,13 @@ export class InputNumber extends BaseInput<InputNumberPassThrough> {
 
     formattedValue() {
         const val = !this.value && !this.allowEmpty ? 0 : this.value;
+        // While the user types, the box can hold text that parses to the same number but reads
+        // differently ("58." or "58.80"). A change-detection pass between two fast keystrokes would
+        // otherwise write the re-formatted number back ("58") and drop the decimal sign just typed.
+        const typed = this.input?.nativeElement?.value;
+        if (this.focused && typed != null && this.parseValue(typed) === val) {
+            return typed;
+        }
         return this.formatValue(val);
     }
 

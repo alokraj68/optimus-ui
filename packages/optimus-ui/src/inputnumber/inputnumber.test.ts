@@ -371,6 +371,37 @@ describe('InputNumber', () => {
             expect(testComponent.onFocusChange).toHaveBeenCalled();
         });
 
+        it('should keep a typed decimal sign when change detection runs between fast keystrokes', async () => {
+            testComponent.maxFractionDigits = 4;
+            testFixture.changeDetectorRef.markForCheck();
+            await testFixture.whenStable();
+
+            const press = (char: string) => {
+                const code = char.charCodeAt(0);
+                inputElement.dispatchEvent(new KeyboardEvent('keypress', { key: char, charCode: code, which: code, keyCode: code, cancelable: true }));
+            };
+
+            inputElement.focus();
+            inputElement.dispatchEvent(new Event('focus'));
+            // "5", "8" and "." arrive before the next render, as fast typing on a busy page does.
+            press('5');
+            press('8');
+            press('.');
+            testFixture.changeDetectorRef.markForCheck();
+            testFixture.detectChanges();
+
+            expect(inputElement.value).toBe('58.');
+
+            press('8');
+            press('9');
+            press('8');
+            testFixture.changeDetectorRef.markForCheck();
+            await testFixture.whenStable();
+
+            expect(inputElement.value).toBe('58.898');
+            expect(testComponent.value).toBe(58.898);
+        });
+
         it('should handle blur events', async () => {
             vi.spyOn(testComponent, 'onBlurChange').mockImplementation(() => {});
 
