@@ -402,6 +402,25 @@ describe('InputNumber', () => {
             expect(testComponent.value).toBe(58.898);
         });
 
+        it('should apply a formatting change while the input is focused', async () => {
+            testComponent.value = 1234;
+            testComponent.useGrouping = true;
+            testFixture.changeDetectorRef.markForCheck();
+            await testFixture.whenStable();
+
+            inputElement.focus();
+            inputElement.dispatchEvent(new Event('focus'));
+            testFixture.detectChanges();
+            expect(inputElement.value).toBe('1,234');
+
+            // Same number, new format: the focused box must not keep the old "1,234".
+            testComponent.useGrouping = false;
+            testFixture.changeDetectorRef.markForCheck();
+            await testFixture.whenStable();
+
+            expect(inputElement.value).toBe('1234');
+        });
+
         it('should handle blur events', async () => {
             vi.spyOn(testComponent, 'onBlurChange').mockImplementation(() => {});
 
